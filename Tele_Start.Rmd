@@ -115,5 +115,21 @@ predicted_yyes_2 <- model_results2$net.result
 cor(predicted_yyes_2, ANN_test$yyes)
 ```
 
+#Perform KNN model
+```{r}
+library(class)
+library(caret)
 
+#Run KNN on train data, create predictions for test data
+#Starting K value close to sqrt(nrow(wbcd_train))
+tele_test_pred <- knn(train = tele_train, test = tele_test,
+                      cl = tele_train_labels, k=sqrt(nrow(tele_train)))
+
+#Evaluate model results
+library(gmodels)
+CrossTable(x = tele_test_labels, y = tele_test_pred, 
+           prop.chisq=FALSE)
+
+confusionMatrix(as.factor(tele_test_pred), as.factor(tele_test_labels), positive = "1")
+```
 
