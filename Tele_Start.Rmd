@@ -58,6 +58,37 @@ tele_norm <- as.data.frame(lapply(tele_random, normalize))
 str(telemm)
 ```
 
+## Clustering Model
+
+```{r}
+# Set seed for uniform model result
+set.seed(12345)
+# Remove yyes so model not learning it
+tele_clustering <- tele_norm[-53]
+tele_cluster_z <- as.data.frame(lapply(tele_clustering, scale))
+# Train model with 5 clusters
+tele_clusters <- kmeans(tele_cluster_z, 5)
+# Create variable to store cluster group
+tele_cluster_z$cluster <- tele_clusters$cluster
+tele_cluster_z$yyes <- tele_norm$yyes
+tele_clusters$centers
+tele_clusters$size
+# Evaluate cluster prediction
+aggregate(data = tele_cluster_z, yyes ~ cluster, mean)
+# Now we separate out each group
+group_1 <- tele_cluster_z[tele_cluster_z$cluster == 1,]
+group_2 <- tele_cluster_z[tele_cluster_z$cluster == 2,]
+group_5 <- tele_cluster_z[tele_cluster_z$cluster == 5,]
+index_3 <- which(tele_cluster_z$cluster == 3)
+index_4 <- which(tele_cluster_z$cluster == 4)
+# Create new column called "call" to store our decision
+tele$call <- "NO"
+# Make group 3 and 4 YES indicating we will call them
+tele[index_3,]$call <- "YES"
+tele[index_4,]$call <- "YES"
+```
+
+From the output, we can see that for cluster 3 and 4 the yyes numbers are large so we will call all of them. TODO: write more about how we store the data. Now we run three different models on each of cluster 1, 2 and 5. And use majority voting to decide if we are going to make the call.
 
 ## Getting Train and Test Samples for KNN
 
