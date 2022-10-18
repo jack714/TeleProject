@@ -1,6 +1,6 @@
 ---
 title: "HW6 Telemarketing"
-author: "Jack Yu, Ken Bai"
+author: "Jack Yu, Max Nolan, Gloria Stach, Zihan Zeng, Weiqing Li"
 date: "3/22/2020"
 output:
   html_document:
@@ -36,7 +36,7 @@ str(tele)
 
 ## Getting Data Ready for Analysis
 
-```{r, cache = TRUE}
+```{r, cache=TRUE}
 # Using model.matrix to convert all the factors to dummy variables
 # We are converting all of the factors into dummy variables as the input into knn has to be numeric
 
@@ -90,6 +90,39 @@ tele[index_4,]$call <- "YES"
 
 From the output, we can see that for cluster 3 and 4 the yyes numbers are large so we will call all of them. TODO: write more about how we store the data. Now we run three different models on each of cluster 1, 2 and 5. And use majority voting to decide if we are going to make the call.
 
+## Logistic Regression
+
+```{r}
+# Select 3000 random rows for group 1 test data
+test_set1 <- sample(1:nrow(group_1), 3000)
+
+# Create the train and test set
+group1_train <- group_1[-test_set1, ]
+group1_test <- group_1[test_set1, ]
+
+# Logistic regression model for group 1 with all predictor variables
+lrmodel_1 <- glm(yyes ~., data = group1_train, family = "binomial")
+summary(lrmodel_1)
+
+# Dropping predictor variables that has strong collinearity
+lrmodel_1 <- glm(yyes ~. - jobunknown - defaultyes - loanunknown - contacttelephone - monthmar - monthsep - monthdec - monthnov - monthoct - poutcomenonexistent - poutcomesuccess - cons.conf.idx - nr.employed - pdaysdummy - cluster - emp.var.rate - cons.price.idx, data = group_1, family = "binomial")
+summary(lrmodel_1)
+
+# Predict outcomes using the model
+lroutcome_1 <- predict(lrmodel_1, newdata = group1_test, type = "response")
+
+# Convert response into binary outcome
+lroutcome_1 <- ifelse(lroutcome_1 <= 0.5, 0, 1)
+
+# Evaluate the prediction
+library(gmodels)
+library(caret)
+CrossTable(x = group1_test$yyes, y = lroutcome_1, prop.chisq=FALSE)
+confusionMatrix(as.factor(group1_test$yyes), as.factor(lroutcome_1), positive = "1")
+```
+
+The result of the logistic regression model predicts a total of 12 buying customers that we should call. Among them, 11 customers are actually making the purchase. Therefore, if we follow the model's prediction, the success rate of our call would be its sensitivity, which is 11/12 = 0.92. 
+
 ## Getting Train and Test Samples for KNN
 
 ```{r}
@@ -113,37 +146,34 @@ tele_test_labels <- tele_norm[test_set, "yyes"]
 
 ## ANN model
 
-```{r}
+```{r, cache=TRUE}
+# Building a simple ANN model for group 1 prediction
 library(neuralnet)
 ANN_train <- tele_norm[-test_set,]
 ANN_test <- tele_norm[test_set,]
-ANN_model <- neuralnet(formula = yyes ~ ., data = ANN_train)
-plot(ANN_model)
+ANN_model1 <- neuralnet(formula = yyes ~ . - cluster, data = group1_train)
+plot(ANN_model1)
 ```
 
 ## Evaluate ANN Model
 
-```{r}
-library(gmodels)
-library(class)
-library(caret)
-ANN_pred_1 <- predict(ANN_model, tele_test)
+```{r, cache=TRUE}
+# Group 1 prediction with neural network with 1 neuron
+ANN_pred1 <- predict(ANN_model1, group1_test)
 threshold <- 0.5
-predicted_yyes_1 <- ifelse(ANN_pred_1 < threshold, 0, 1)
-CrossTable(x = ANN_test$yyes, y = predicted_yyes_1, prop.chisq=FALSE)
-confusionMatrix(as.factor(predicted_yyes_1), as.factor(ANN_test$yyes), positive = "1")
+predicted_yyes_1 <- ifelse(ANN_pred1 < threshold, 0, 1)
+CrossTable(x = group1_test$yyes, y = predicted_yyes_1, prop.chisq=FALSE)
+# confusionMatrix(as.factor(group1_test$yyes), as.factor(predicted_yyes_1), positive = "1")
 
 
 # a more complex neural network topology with 5 hidden neurons
-ANN_model2 <- neuralnet(yyes ~ ., data = ANN_train, hidden = 5)
-
-# plot the network
-plot(ANN_model2)
+# ANN_model1 <- neuralnet(yyes ~ . - cluster, data = ANN_train, hidden = 5)
+# plot(ANN_model1)
 
 # evaluate the results as we did before
-model_results2 <- compute(ANN_model2, ANN_test)
-predicted_yyes_2 <- model_results2$net.result
-cor(predicted_yyes_2, ANN_test$yyes)
+# predicted_yyes_1 <- ifelse(ANN_pred1 < threshold, 0, 1)
+# CrossTable(x = group1_test$yyes, y = predicted_yyes_1, prop.chisq=FALSE)
+# confusionMatrix(as.factor(group1_test$yyes), as.factor(predicted_yyes_1), positive = "1")
 ```
 
 #Perform KNN model
