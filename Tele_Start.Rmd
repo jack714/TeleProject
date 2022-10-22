@@ -101,7 +101,7 @@ group1_train <- group_1[-test_set1, ]
 group1_test <- group_1[test_set1, ]
 
 # Logistic regression model for group 1 with all predictor variables
-lrmodel_1 <- glm(yyes ~., data = group1_train, family = "binomial")
+lrmodel_1 <- glm(yyes ~. -cluster, data = group1_train, family = "binomial")
 summary(lrmodel_1)
 
 # Dropping predictor variables that has strong collinearity
@@ -142,39 +142,50 @@ tele_train_labels <- tele_norm[-test_set, "yyes"]
 tele_test_labels <- tele_norm[test_set, "yyes"]
 ```
 
-> Now you are ready to build your ANN model. Feel free to modify the data load, cleaning and preparation code above as per your preference.
 
 ## ANN model
 
 ```{r, cache=TRUE}
 # Building a simple ANN model for group 1 prediction
 library(neuralnet)
-ANN_train <- tele_norm[-test_set,]
-ANN_test <- tele_norm[test_set,]
-ANN_model1 <- neuralnet(formula = yyes ~ . - cluster, data = group1_train)
-plot(ANN_model1)
+# generate random 3000 samples from group 1 as test data, rest as train data
+test_index <- sample(1:nrow(group_1), 3000)
+ANN_G1_train <- group_1[-test_index,]
+ANN_G1_test <- group_1[test_index,]
+# Train the ANN model with default 1 hidden layer
+# We don't train on cluster since it's all 1 for group_1
+ANN_mod_G1 <- neuralnet(formula = yyes ~ . - cluster, data = ANN_G1_train)
+plot(ANN_mod_G1)
 ```
 
 ## Evaluate ANN Model
 
 ```{r, cache=TRUE}
 # Group 1 prediction with neural network with 1 neuron
-ANN_pred1 <- predict(ANN_model1, group1_test)
+ANN_pred1 <- predict(ANN_mod_G1, newdata = ANN_G1_test)
 threshold <- 0.5
-predicted_yyes_1 <- ifelse(ANN_pred1 < threshold, 0, 1)
-CrossTable(x = group1_test$yyes, y = predicted_yyes_1, prop.chisq=FALSE)
-# confusionMatrix(as.factor(group1_test$yyes), as.factor(predicted_yyes_1), positive = "1")
-
-
-# a more complex neural network topology with 5 hidden neurons
-# ANN_model1 <- neuralnet(yyes ~ . - cluster, data = ANN_train, hidden = 5)
-# plot(ANN_model1)
-
-# evaluate the results as we did before
-# predicted_yyes_1 <- ifelse(ANN_pred1 < threshold, 0, 1)
-# CrossTable(x = group1_test$yyes, y = predicted_yyes_1, prop.chisq=FALSE)
-# confusionMatrix(as.factor(group1_test$yyes), as.factor(predicted_yyes_1), positive = "1")
+predicted_yyes_1 <- ifelse(ANN_pred1 <= threshold, 0, 1)
+CrossTable(x = ANN_G1_test$yyes, y = predicted_yyes_1, prop.chisq=FALSE)
+confusionMatrix(as.factor(ANN_G1_test$yyes), as.factor(predicted_yyes_1), positive = "1")
+# Now let's try with more hidden layers
+ANN_mod2_G1 <- neuralnet(yyes ~ . - cluster, data = ANN_G1_train, hidden = 3)
+plot(ANN_mod2_G1)
+ANN_pred2 <- predict(ANN_mod2_G1, newdata = ANN_G1_test)
+threshold <- 0.5
+predicted_yyes_2 <- ifelse(ANN_pred2 <= threshold, 0, 1)
+CrossTable(x = ANN_G1_test$yyes, y = predicted_yyes_2, prop.chisq=FALSE)
+confusionMatrix(as.factor(ANN_G1_test$yyes), as.factor(predicted_yyes_2), positive = "1")
+# With 5 layers
+ANN_mod3_G1 <- neuralnet(yyes ~ . - cluster, data = ANN_G1_train, hidden = 5)
+plot(ANN_mod3_G1)
+ANN_pred3 <- predict(ANN_mod3_G1, newdata = ANN_G1_test)
+threshold <- 0.5
+predicted_yyes_3 <- ifelse(ANN_pred3 <= threshold, 0, 1)
+CrossTable(x = ANN_G1_test$yyes, y = predicted_yyes_3, prop.chisq=FALSE)
+confusionMatrix(as.factor(ANN_G1_test$yyes), as.factor(predicted_yyes_3), positive = "1")
 ```
+
+Thus we can see that the ANN model with 3 and 5 hidden layers didn't outperform the default model with 1 hidden layer for Group_1.
 
 #Perform KNN model
 ```{r}
