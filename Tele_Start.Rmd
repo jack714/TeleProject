@@ -321,8 +321,6 @@ group_5_ANN_decision <- predicted_yyes_9
 
 We can see that for Group 5, the ANN model with 1 hidden layer has profit of 133 * 6 - (133+1937) * 1 = -1272, the ANN model with 3 hidden layers has profit of 3 * 6 - (38+3) * 1 = -23, and the ANN model with 5 hidden layers has profit of 1 * 6 - (1+1) * 1 = 4. We thus choose the prediction results for the model with 5 hidden layers given its highest profit. However, the profit is much lower than group 1's profit, indicating that group 5 may not be a good group to make calls.
 
-## KNN 
-
 ## kNN prediction
 ```{r}
 # Load the required library
