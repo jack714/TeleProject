@@ -81,13 +81,11 @@ group_2 <- tele_cluster_z[tele_cluster_z$cluster == 2,]
 group_5 <- tele_cluster_z[tele_cluster_z$cluster == 5,]
 index_3 <- which(tele_cluster_z$cluster == 3)
 index_4 <- which(tele_cluster_z$cluster == 4)
-# Create new column called "call" to store our decision
-tele$call <- "NO"
-# Make group 3 and 4 YES indicating we will call them
-tele[index_3,]$call <- "YES"
-tele[index_4,]$call <- "YES"
-
-cluster_data = list(group_1,group_2,group_5)
+group_1 <- tele_cluster_z[tele_cluster_z$cluster == 1,]
+group_2 <- tele_cluster_z[tele_cluster_z$cluster == 2,]
+group_3 <- tele_cluster_z[tele_cluster_z$cluster == 3,]
+group_4 <- tele_cluster_z[tele_cluster_z$cluster == 4,]
+group_5 <- tele_cluster_z[tele_cluster_z$cluster == 5,]
 ```
 
 From the output, we can see that for cluster 3 and 4 the yyes numbers are large so we will call all of them. TODO: write more about how we store the data. Now we run three different models on each of cluster 1, 2 and 5. And use majority voting to decide if we are going to make the call.
@@ -193,51 +191,135 @@ For group 5, the result of the logistic regression model predicts a total of 5 b
 
 ## ANN model
 
+### Group 1
 ```{r, cache=TRUE}
 # Building a simple ANN model for group 1 prediction
 library(neuralnet)
-for(x in cluster_data){
-  # generate random 3000 samples from group 1 as test data, rest as train data
-  set.seed(430) # for reproducibility 
-  yes_people = which(x$yyes == 1)
-  no_people = which(x$yyes == 0)
-  train_id = c(sample(yes_people , size = trunc(0.70 * length(yes_people ))),sample(no_people , size = trunc(0.70 * length(no_people ))))
+# generate random 60% samples from group 1 as test data, rest as train data
+yes_people_G1 = which(group_1$yyes == 1)
+no_people_G1 = which(group_1$yyes == 0)
+train_id_G1 = c(sample(yes_people_G1 , size = trunc(0.60 * length(yes_people_G1 ))),sample(no_people_G1 , size = trunc(0.60 * length(no_people_G1))))
+ANN_G1_train <- group_1[-train_id_G1,]
+ANN_G1_test <- group_1[train_id_G1,]
+# Train the ANN model with default 1 hidden layer
+# We don't train on cluster since it's all 1 for group_1
+ANN_mod_G1 <- neuralnet(formula = yyes ~ . - cluster, data = ANN_G1_train)
+plot(ANN_mod_G1)
+# Evaluation of the model
+# Group 1 prediction with neural network with 1 neuron
+ANN_pred1 <- predict(ANN_mod_G1, newdata = ANN_G1_test)
+# We set the threshold that will give the maximum revenue
+threshold <- 0.6
+predicted_yyes_1 <- ifelse(ANN_pred1 <= threshold, 0, 1)
+CrossTable(x = ANN_G1_test$yyes, y = predicted_yyes_1, prop.chisq=FALSE)
+confusionMatrix(as.factor(ANN_G1_test$yyes), as.factor(predicted_yyes_1), positive = "1")
 
-  ANN_G1_train <- x[train_id,]
-  ANN_G1_test <- x[-train_id,]
-  # Train the ANN model with default 1 hidden layer
-  # We don't train on cluster since it's all 1 for group_1
-  ANN_mod_G1 <- neuralnet(formula = yyes ~ . - cluster, data = ANN_G1_train)
-  plot(ANN_mod_G1)
-  #evaluation of the model
-  # Group 1 prediction with neural network with 1 neuron
-  ANN_pred1 <- predict(ANN_mod_G1, newdata = ANN_G1_test)
-  threshold <- 0.5
-  predicted_yyes_1 <- ifelse(ANN_pred1 <= threshold, 0, 1)
-  CrossTable(x = ANN_G1_test$yyes, y = predicted_yyes_1, prop.chisq=FALSE)
-  confusionMatrix(as.factor(ANN_G1_test$yyes), as.factor(predicted_yyes_1), positive = "1")
-  }
-  # Now let's try with more hidden layers
-  ANN_mod2_G1 <- neuralnet(yyes ~ . - cluster, data = ANN_G1_train, hidden = 3)
-  plot(ANN_mod2_G1)
-  ANN_pred2 <- predict(ANN_mod2_G1, newdata = ANN_G1_test)
-  threshold <- 0.5
-  predicted_yyes_2 <- ifelse(ANN_pred2 <= threshold, 0, 1)
-  CrossTable(x = ANN_G1_test$yyes, y = predicted_yyes_2, prop.chisq=FALSE)
-  confusionMatrix(as.factor(ANN_G1_test$yyes), as.factor(predicted_yyes_2), positive = "1")
-  # With 5 layers
-  ANN_mod3_G1 <- neuralnet(yyes ~ . - cluster, data = ANN_G1_train, hidden = 5)
-  plot(ANN_mod3_G1)
-  ANN_pred3 <- predict(ANN_mod3_G1, newdata = ANN_G1_test)
-  threshold <- 0.5
-  predicted_yyes_3 <- ifelse(ANN_pred3 <= threshold, 0, 1)
-  CrossTable(x = ANN_G1_test$yyes, y = predicted_yyes_3, prop.chisq=FALSE)
-  confusionMatrix(as.factor(ANN_G1_test$yyes), as.factor(predicted_yyes_3), positive = "1")
-
+# Now let's try with more hidden layers
+ANN_mod2_G1 <- neuralnet(yyes ~ . - cluster, data = ANN_G1_train, hidden = 3)
+plot(ANN_mod2_G1)
+ANN_pred2 <- predict(ANN_mod2_G1, newdata = ANN_G1_test)
+threshold <- 0.6
+predicted_yyes_2 <- ifelse(ANN_pred2 <= threshold, 0, 1)
+CrossTable(x = ANN_G1_test$yyes, y = predicted_yyes_2, prop.chisq=FALSE)
+confusionMatrix(as.factor(ANN_G1_test$yyes), as.factor(predicted_yyes_2), positive = "1")
+# With 5 layers
+ANN_mod3_G1 <- neuralnet(yyes ~ . - cluster, data = ANN_G1_train, hidden = 5)
+plot(ANN_mod3_G1)
+ANN_pred3 <- predict(ANN_mod3_G1, newdata = ANN_G1_test)
+threshold <- 0.6
+predicted_yyes_3 <- ifelse(ANN_pred3 <= threshold, 0, 1)
+CrossTable(x = ANN_G1_test$yyes, y = predicted_yyes_3, prop.chisq=FALSE)
+confusionMatrix(as.factor(ANN_G1_test$yyes), as.factor(predicted_yyes_3), positive = "1")
+group_1_ANN_decision <- predicted_yyes_3
 ```
-## ANN Model for Group
 
-Thus we can see that the ANN model with 3 and 5 hidden layers didn't outperform the default model with 1 hidden layer for Group_1.
+Thus we can see that for Group 1, the ANN model with 1 hidden layer has profit of 17 * 6 - (47+17) * 1 = 38, the ANN model with 3 hidden layers has profit of 10 * 6 - (54+10) * 1 = -4, and the ANN model with 5 hidden layers has profit of 12 * 6 - (13+12) * 1 = 47. We thus choose the prediction results for the model with 5 hidden layers given its highest profit and the lower requirement on number of calls made.
+
+### Group 2
+
+```{r, cache=TRUE}
+# Building a simple ANN model for group 2 prediction
+# generate random 60% samples from group 2 as test data, rest as train data
+yes_people_G2 = which(group_2$yyes == 1)
+no_people_G2 = which(group_2$yyes == 0)
+train_id_G2 = c(sample(yes_people_G2 , size = trunc(0.60 * length(yes_people_G2 ))),sample(no_people_G2 , size = trunc(0.60 * length(no_people_G2))))
+ANN_G2_train <- group_2[-train_id_G2,]
+ANN_G2_test <- group_2[train_id_G2,]
+# Train the ANN model with default 1 hidden layer
+# We don't train on cluster since it's all 1 for group_1
+ANN_mod_G2 <- neuralnet(formula = yyes ~ . - cluster, data = ANN_G2_train)
+plot(ANN_mod_G2)
+# Evaluation of the model Group 2 prediction with 1 neuron
+ANN_pred4 <- predict(ANN_mod_G2, newdata = ANN_G2_test)
+# We set the threshold that will give the maximum revenue
+threshold <- 0.13
+predicted_yyes_4 <- ifelse(ANN_pred4 <= threshold, 0, 1)
+CrossTable(x = ANN_G2_test$yyes, y = predicted_yyes_4, prop.chisq=FALSE)
+confusionMatrix(as.factor(ANN_G2_test$yyes), as.factor(predicted_yyes_4), positive = "1")
+
+# Now let's try with more hidden layers
+ANN_mod2_G2 <- neuralnet(yyes ~ . - cluster, data = ANN_G2_train, hidden = 3)
+plot(ANN_mod2_G2)
+ANN_pred5 <- predict(ANN_mod2_G2, newdata = ANN_G2_test)
+threshold <- 0.3
+predicted_yyes_5 <- ifelse(ANN_pred5 <= threshold, 0, 1)
+CrossTable(x = ANN_G2_test$yyes, y = predicted_yyes_5, prop.chisq=FALSE)
+confusionMatrix(as.factor(ANN_G1_test$yyes), as.factor(predicted_yyes_2), positive = "1")
+# With 5 layers
+ANN_mod3_G2 <- neuralnet(yyes ~ . - cluster, data = ANN_G2_train, hidden = 5)
+plot(ANN_mod3_G2)
+ANN_pred6 <- predict(ANN_mod3_G2, newdata = ANN_G2_test)
+threshold <- 0.85
+predicted_yyes_6 <- ifelse(ANN_pred6 <= threshold, 0, 1)
+CrossTable(x = ANN_G2_test$yyes, y = predicted_yyes_6, prop.chisq=FALSE)
+confusionMatrix(as.factor(ANN_G1_test$yyes), as.factor(predicted_yyes_3), positive = "1")
+group_2_ANN_decision <- predicted_yyes_6
+```
+
+We can see that for Group 2, the ANN model with 1 hidden layer has profit of 80 * 6 - (1175+80) * 1 = -775, the ANN model with 3 hidden layers has profit of 6 * 6 - (95+6) * 1 = -65, and the ANN model with 5 hidden layers has profit of 3 * 6 - (12+3) * 1 = 3. We thus choose the prediction results for the model with 5 hidden layers given its highest profit and the lower requirement on number of calls made. However, the profit is much lower than group 1's profit, indicating that group 2 may not be a good group to make calls.
+
+### Model 5
+
+```{r, cache=TRUE}
+# Building a simple ANN model for group 5 prediction
+# generate random 60% samples from group 5 as test data, rest as train data
+yes_people_G5 = which(group_5$yyes == 1)
+no_people_G5 = which(group_5$yyes == 0)
+train_id_G5 = c(sample(yes_people_G5 , size = trunc(0.60 * length(yes_people_G5 ))),sample(no_people_G5 , size = trunc(0.60 * length(no_people_G5))))
+ANN_G5_train <- group_2[-train_id_G5,]
+ANN_G5_test <- group_2[train_id_G5,]
+# Train the ANN model with default 1 hidden layer
+# We don't train on cluster since it's all 1 for group_1
+ANN_mod_G5 <- neuralnet(formula = yyes ~ . - cluster, data = ANN_G5_train)
+plot(ANN_mod_G5)
+# Evaluation of the model Group 2 prediction with 1 neuron
+ANN_pred7 <- predict(ANN_mod_G5, newdata = ANN_G5_test)
+# We set the threshold that will give the maximum revenue
+threshold <- 0.05
+predicted_yyes_7 <- ifelse(ANN_pred7 <= threshold, 0, 1)
+CrossTable(x = ANN_G5_test$yyes, y = predicted_yyes_7, prop.chisq=FALSE)
+confusionMatrix(as.factor(ANN_G5_test$yyes), as.factor(predicted_yyes_7), positive = "1")
+
+# Now let's try with more hidden layers
+ANN_mod2_G5 <- neuralnet(yyes ~ . - cluster, data = ANN_G5_train, hidden = 3)
+plot(ANN_mod2_G5)
+ANN_pred8 <- predict(ANN_mod2_G5, newdata = ANN_G5_test)
+threshold <- 0.2
+predicted_yyes_8 <- ifelse(ANN_pred8 <= threshold, 0, 1)
+CrossTable(x = ANN_G5_test$yyes, y = predicted_yyes_8, prop.chisq=FALSE)
+confusionMatrix(as.factor(ANN_G5_test$yyes), as.factor(predicted_yyes_8), positive = "1")
+# With 5 layers
+ANN_mod3_G5 <- neuralnet(yyes ~ . - cluster, data = ANN_G5_train, hidden = 5)
+plot(ANN_mod3_G5)
+ANN_pred9 <- predict(ANN_mod3_G5, newdata = ANN_G5_test)
+threshold <- 0.37
+predicted_yyes_9 <- ifelse(ANN_pred9 <= threshold, 0, 1)
+CrossTable(x = ANN_G5_test$yyes, y = predicted_yyes_9, prop.chisq=FALSE)
+confusionMatrix(as.factor(ANN_G5_test$yyes), as.factor(predicted_yyes_9), positive = "1")
+group_5_ANN_decision <- predicted_yyes_9
+```
+
+We can see that for Group 5, the ANN model with 1 hidden layer has profit of 133 * 6 - (133+1937) * 1 = -1272, the ANN model with 3 hidden layers has profit of 3 * 6 - (38+3) * 1 = -23, and the ANN model with 5 hidden layers has profit of 1 * 6 - (1+1) * 1 = 4. We thus choose the prediction results for the model with 5 hidden layers given its highest profit. However, the profit is much lower than group 1's profit, indicating that group 5 may not be a good group to make calls.
 
 ## KNN 
 
