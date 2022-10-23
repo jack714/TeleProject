@@ -92,20 +92,24 @@ From the output, we can see that for cluster 3 and 4 the yyes numbers are large 
 
 ## Logistic Regression
 
+### Group 1
 ```{r}
-# Select 3000 random rows for group 1 test data
-test_set1 <- sample(1:nrow(group_1), 3000)
+set.seed(12345)
+# Select 60% rows of cluster 1 as test data
+  yes_people1 = which(group_1$yyes == 1)
+  no_people1 = which(group_1$yyes == 0)
+  train_id1 = c(sample(yes_people , size = trunc(0.40 * length(yes_people ))),sample(no_people , size = trunc(0.40 * length(no_people ))))
 
 # Create the train and test set
-group1_train <- group_1[-test_set1, ]
-group1_test <- group_1[test_set1, ]
+group1_train <- group_1[train_id1, ]
+group1_test <- group_1[-train_id1, ]
 
 # Logistic regression model for group 1 with all predictor variables
 lrmodel_1 <- glm(yyes ~. -cluster, data = group1_train, family = "binomial")
 summary(lrmodel_1)
 
 # Dropping predictor variables that has strong collinearity
-lrmodel_1 <- glm(yyes ~. - jobunknown - educationilliterate - defaultyes - loanunknown - contacttelephone - monthmar - monthsep - monthdec - monthnov - monthoct - poutcomenonexistent - poutcomesuccess - cons.conf.idx - nr.employed - pdaysdummy - cluster - emp.var.rate - cons.price.idx - previous, data = group1_train, family = "binomial")
+lrmodel_1 <- glm(yyes ~. - jobunknown - educationilliterate - defaultyes - loanunknown - contacttelephone - monthmar - monthsep - monthdec - monthnov - monthoct - monthjul - poutcomenonexistent - poutcomesuccess - cons.conf.idx - nr.employed - pdaysdummy - cluster - emp.var.rate - cons.price.idx - previous, data = group1_train, family = "binomial")
 summary(lrmodel_1)
 
 # Predict outcomes using the model
@@ -121,15 +125,19 @@ CrossTable(x = group1_test$yyes, y = lroutcome_1, prop.chisq=FALSE)
 confusionMatrix(as.factor(group1_test$yyes), as.factor(lroutcome_1), positive = "1")
 ```
 
-For group 1, the result of the logistic regression model predicts a total of 7 buying customers that we should call. Among them, 6 customers are actually making the purchase. Therefore, if we follow the model's prediction, the success rate of our call would be its sensitivity, which is 6/7 = 0.86. 
+For group 1, the result of the logistic regression model predicts a total of 29 buying customers that we should call. Among them, 17 customers are actually making the purchase. Therefore, if we follow the model's prediction, the success rate of our call would be its sensitivity, which is 17/29 = 0.59. The profit we can earn with the prediction result would be 17*6 - 29 = $73.
 
+### Group 2
 ```{r}
-# Select 4000 random rows for group 2 test data
-test_set2 <- sample(1:nrow(group_2), 4000)
+set.seed(12345)
+# Select 60% rows of cluster 2 as test data
+  yes_people2 = which(group_2$yyes == 1)
+  no_people2 = which(group_2$yyes == 0)
+  train_id2 = c(sample(yes_people , size = trunc(0.40 * length(yes_people ))),sample(no_people , size = trunc(0.40 * length(no_people ))))
 
 # Create the train and test set
-group2_train <- group_2[-test_set2, ]
-group2_test <- group_2[test_set2, ]
+group2_train <- group_2[train_id2, ]
+group2_test <- group_2[-train_id2, ]
 
 # Logistic regression model for group 1 with all predictor variables
 lrmodel_2 <- glm(yyes ~. - cluster, data = group2_train, family = "binomial")
@@ -146,28 +154,30 @@ lroutcome_2 <- predict(lrmodel_2, newdata = group2_test, type = "response")
 lroutcome_2 <- ifelse(lroutcome_2 <= 0.5, 0, 1)
 
 # Evaluate the prediction
-library(gmodels)
-library(caret)
 CrossTable(x = group2_test$yyes, y = lroutcome_2, prop.chisq=FALSE)
 confusionMatrix(as.factor(group2_test$yyes), as.factor(lroutcome_2), positive = "1")
 ```
 
-For group 2, the result of the logistic regression model predicts a total of 3 buying customers that we should call. Among them, 2 customers are actually making the purchase. Therefore, if we follow the model's prediction, the success rate of our call would be its sensitivity, which is 2/3 = 0.67. 
+For group 2, the result of the logistic regression model predicts 0 buying customer that we should call, which means that we should not make any call within this customer group, and earn 0 profit.  
 
+### Group 5
 ```{r}
-# Select 1000 random rows for group 5 test data
-test_set5 <- sample(1:nrow(group_5), 1000)
-
+set.seed(12345)
+# Select 60% rows of cluster 5 as test data
+  yes_people5 = which(group_5$yyes == 1)
+  no_people5 = which(group_5$yyes == 0)
+  train_id5 = c(sample(yes_people , size = trunc(0.40 * length(yes_people ))),sample(no_people , size = trunc(0.40 * length(no_people ))))
+  
 # Create the train and test set
-group5_train <- group_5[-test_set5, ]
-group5_test <- group_5[test_set5, ]
+group5_train <- group_5[train_id5, ]
+group5_test <- group_5[-train_id5, ]
 
 # Logistic regression model for group 1 with all predictor variables
 lrmodel_5 <- glm(yyes ~. - cluster, data = group5_train, family = "binomial")
 summary(lrmodel_5)
 
 # Dropping predictor variables that has strong collinearity
-lrmodel_5 <- glm(yyes ~. - jobunemployed - jobunknown - educationilliterate - loanunknown - poutcomenonexistent - poutcomesuccess - pdaysdummy - cluster, data = group5_train, family = "binomial")
+lrmodel_5 <- glm(yyes ~. - jobunemployed - jobunknown - educationilliterate - loanunknown - monthdec - poutcomenonexistent - poutcomesuccess - pdaysdummy - cluster, data = group5_train, family = "binomial")
 summary(lrmodel_5)
 
 # Predict outcomes using the model
@@ -177,13 +187,11 @@ lroutcome_5 <- predict(lrmodel_5, newdata = group5_test, type = "response")
 lroutcome_5 <- ifelse(lroutcome_5 <= 0.5, 0, 1)
 
 # Evaluate the prediction
-library(gmodels)
-library(caret)
 CrossTable(x = group5_test$yyes, y = lroutcome_5, prop.chisq=FALSE)
 confusionMatrix(as.factor(group5_test$yyes), as.factor(lroutcome_5), positive = "1")
 ```
 
-For group 5, the result of the logistic regression model predicts a total of 5 buying customers that we should call. Among them, 3 customers are actually making the purchase. Therefore, if we follow the model's prediction, the success rate of our call would be its sensitivity, which is 3/5 = 0.60. 
+For group 5, the result of the logistic regression model predicts a total of 29 buying customers that we should call. Among them, 13 customers are actually making the purchase. Therefore, if we follow the model's prediction, the success rate of our call would be its sensitivity, which is 13/29 = 0.45. The profit we can earn with the prediction result would be 13*6 - 29 = $49. 
 
 
 
