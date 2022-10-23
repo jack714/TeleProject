@@ -86,6 +86,8 @@ tele$call <- "NO"
 # Make group 3 and 4 YES indicating we will call them
 tele[index_3,]$call <- "YES"
 tele[index_4,]$call <- "YES"
+
+cluster_data = list(group_1,group_2,group_5)
 ```
 
 From the output, we can see that for cluster 3 and 4 the yyes numbers are large so we will call all of them. TODO: write more about how we store the data. Now we run three different models on each of cluster 1, 2 and 5. And use majority voting to decide if we are going to make the call.
@@ -185,24 +187,7 @@ confusionMatrix(as.factor(group5_test$yyes), as.factor(lroutcome_5), positive = 
 
 For group 5, the result of the logistic regression model predicts a total of 5 buying customers that we should call. Among them, 3 customers are actually making the purchase. Therefore, if we follow the model's prediction, the success rate of our call would be its sensitivity, which is 3/5 = 0.60. 
 
-## Getting Train and Test Samples for KNN
 
-```{r}
-# Selects 10000 random rows for test data
-set.seed(12345)
-test_set <- sample(1:nrow(tele_norm), 10000) 
-# Depending on R-version and computer, different rows may be selected. 
-# If that happens, results are different. 
-
-# Create a train set and test set
-#First the predictors - all columns except the yyes column
-tele_train <- tele_norm[-test_set, -match("yyes",names(tele_norm))]
-tele_test <- tele_norm[test_set, -match("yyes",names(tele_norm))]
-
-#Now the response (aka Labels) - only the yyes column
-tele_train_labels <- tele_norm[-test_set, "yyes"]
-tele_test_labels <- tele_norm[test_set, "yyes"]
-```
 
 > Now you are ready to build your ANN model. Feel free to modify the data load, cleaning and preparation code above as per your preference.
 
@@ -211,59 +196,89 @@ tele_test_labels <- tele_norm[test_set, "yyes"]
 ```{r, cache=TRUE}
 # Building a simple ANN model for group 1 prediction
 library(neuralnet)
-# generate random 3000 samples from group 1 as test data, rest as train data
-test_index <- sample(1:nrow(group_1), 3000)
-ANN_G1_train <- group_1[-test_index,]
-ANN_G1_test <- group_1[test_index,]
-# Train the ANN model with default 1 hidden layer
-# We don't train on cluster since it's all 1 for group_1
-ANN_mod_G1 <- neuralnet(formula = yyes ~ . - cluster, data = ANN_G1_train)
-plot(ANN_mod_G1)
-```
+#for(x in cluster_data){
+  # generate random 3000 samples from group 1 as test data, rest as train data
+  #find number of yyes
 
-## Evaluate ANN Model
+  set.seed(430) # for reproducibility 
+  yes_people = which(group_1$yyes == 1)
+  no_people = which(group_1$yyes == 0)
+  train_id = c(sample(yes_people , size = trunc(0.70 * length(yes_people ))),sample(no_people , size = trunc(0.70 * length(no_people ))))
 
-```{r, cache=TRUE}
-# Group 1 prediction with neural network with 1 neuron
-ANN_pred1 <- predict(ANN_mod_G1, newdata = ANN_G1_test)
-threshold <- 0.5
-predicted_yyes_1 <- ifelse(ANN_pred1 <= threshold, 0, 1)
-CrossTable(x = ANN_G1_test$yyes, y = predicted_yyes_1, prop.chisq=FALSE)
-confusionMatrix(as.factor(ANN_G1_test$yyes), as.factor(predicted_yyes_1), positive = "1")
-# Now let's try with more hidden layers
-ANN_mod2_G1 <- neuralnet(yyes ~ . - cluster, data = ANN_G1_train, hidden = 3)
-plot(ANN_mod2_G1)
-ANN_pred2 <- predict(ANN_mod2_G1, newdata = ANN_G1_test)
-threshold <- 0.5
-predicted_yyes_2 <- ifelse(ANN_pred2 <= threshold, 0, 1)
-CrossTable(x = ANN_G1_test$yyes, y = predicted_yyes_2, prop.chisq=FALSE)
-confusionMatrix(as.factor(ANN_G1_test$yyes), as.factor(predicted_yyes_2), positive = "1")
-# With 5 layers
-ANN_mod3_G1 <- neuralnet(yyes ~ . - cluster, data = ANN_G1_train, hidden = 5)
-plot(ANN_mod3_G1)
-ANN_pred3 <- predict(ANN_mod3_G1, newdata = ANN_G1_test)
-threshold <- 0.5
-predicted_yyes_3 <- ifelse(ANN_pred3 <= threshold, 0, 1)
-CrossTable(x = ANN_G1_test$yyes, y = predicted_yyes_3, prop.chisq=FALSE)
-confusionMatrix(as.factor(ANN_G1_test$yyes), as.factor(predicted_yyes_3), positive = "1")
+  ANN_G1_train <- group_1[train_id,]
+  ANN_G1_test <- group_1[-train_id,]
+  # Train the ANN model with default 1 hidden layer
+  # We don't train on cluster since it's all 1 for group_1
+  ANN_mod_G1 <- neuralnet(formula = yyes ~ . - cluster, data = ANN_G1_train)
+  plot(ANN_mod_G1)
+  #evaluation of the model
+  # Group 1 prediction with neural network with 1 neuron
+  ANN_pred1 <- predict(ANN_mod_G1, newdata = ANN_G1_test)
+  threshold <- 0.5
+  predicted_yyes_1 <- ifelse(ANN_pred1 <= threshold, 0, 1)
+  CrossTable(x = ANN_G1_test$yyes, y = predicted_yyes_1, prop.chisq=FALSE)
+  confusionMatrix(as.factor(ANN_G1_test$yyes), as.factor(predicted_yyes_1), positive = "1")
+#}
+  # Now let's try with more hidden layers
+  ANN_mod2_G1 <- neuralnet(yyes ~ . - cluster, data = ANN_G1_train, hidden = 3)
+  plot(ANN_mod2_G1)
+  ANN_pred2 <- predict(ANN_mod2_G1, newdata = ANN_G1_test)
+  threshold <- 0.5
+  predicted_yyes_2 <- ifelse(ANN_pred2 <= threshold, 0, 1)
+  CrossTable(x = ANN_G1_test$yyes, y = predicted_yyes_2, prop.chisq=FALSE)
+  confusionMatrix(as.factor(ANN_G1_test$yyes), as.factor(predicted_yyes_2), positive = "1")
+  # With 5 layers
+  ANN_mod3_G1 <- neuralnet(yyes ~ . - cluster, data = ANN_G1_train, hidden = 5)
+  plot(ANN_mod3_G1)
+  ANN_pred3 <- predict(ANN_mod3_G1, newdata = ANN_G1_test)
+  threshold <- 0.5
+  predicted_yyes_3 <- ifelse(ANN_pred3 <= threshold, 0, 1)
+  CrossTable(x = ANN_G1_test$yyes, y = predicted_yyes_3, prop.chisq=FALSE)
+  confusionMatrix(as.factor(ANN_G1_test$yyes), as.factor(predicted_yyes_3), positive = "1")
+
 ```
+## ANN Model for Group
 
 Thus we can see that the ANN model with 3 and 5 hidden layers didn't outperform the default model with 1 hidden layer for Group_1.
 
-#Perform KNN model
+## KNN 
+
 ```{r}
+set.seed(12345)
 library(class)
 library(caret)
-
-#Run KNN on train data, create predictions for test data
-#Starting K value close to sqrt(nrow(wbcd_train))
-tele_test_pred <- knn(train = tele_train, test = tele_test,
-                      cl = tele_train_labels, k=sqrt(nrow(tele_train)))
-
-#Evaluate model results
 library(gmodels)
-CrossTable(x = tele_test_labels, y = tele_test_pred, 
-           prop.chisq=FALSE)
+  
+for(x in cluster_data){
+  #split into test and train
+  yes_people = which(x$yyes == 1)
+  no_people = which(x$yyes == 0)
+  train_id = c(sample(yes_people , size = trunc(0.70 * length(yes_people ))),sample(no_people , size = trunc(0.70 * length(no_people ))))
 
-confusionMatrix(as.factor(tele_test_pred), as.factor(tele_test_labels), positive = "1")
+  tele_train <- x[train_id, -match("yyes",names(x))]
+  tele_test <- x[-train_id, -match("yyes",names(x))]
+  
+  #Now the response (aka Labels) - only the yyes column
+  tele_train_labels <- x[train_id, "yyes"]
+  tele_test_labels <- x[-train_id, "yyes"]
+  
+
+  #Run KNN on train data, create predictions for test data
+  #Starting K value close to sqrt(nrow(wbcd_train))
+  tele_test_pred <- knn(train = tele_train, test = tele_test,
+                        cl = tele_train_labels, k=sqrt(nrow(tele_train)))
+  
+  #Evaluate model results
+  
+  CrossTable(x = tele_test_labels, y = tele_test_pred, 
+             prop.chisq=FALSE)
+  
+  confusionMatrix(as.factor(tele_test_pred), as.factor(tele_test_labels), positive = "1")
+
+}
 ```
+
+
+
+
+
