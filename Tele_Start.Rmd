@@ -323,36 +323,131 @@ We can see that for Group 5, the ANN model with 1 hidden layer has profit of 133
 
 ## KNN 
 
+## kNN prediction
+```{r}
+# Load the required library
+library(caret)
+library(tidyverse)
+library(gmodels)
+```
+
+### Group 1 Analysis
 ```{r}
 set.seed(12345)
-library(class)
-library(caret)
-library(gmodels)
-  
-for(x in cluster_data){
-  #split into test and train
-  yes_people = which(x$yyes == 1)
-  no_people = which(x$yyes == 0)
-  train_id = c(sample(yes_people , size = trunc(0.70 * length(yes_people ))),sample(no_people , size = trunc(0.70 * length(no_people ))))
+# Selects random rows for the group 1 test data
+yes_people1 = which(group_1$yyes == 1)
+no_people1 = which(group_1$yyes == 0)
+kNN_test_set1 = c(sample(yes_people1, size = trunc(0.40 * length(yes_people1 ))),sample(no_people1, size = trunc(0.40 * length(no_people1))))
 
-  tele_train <- x[train_id, -match("yyes",names(x))]
-  tele_test <- x[-train_id, -match("yyes",names(x))]
-  
-  #Now the response (aka Labels) - only the yyes column
-  tele_train_labels <- x[train_id, "yyes"]
-  tele_test_labels <- x[-train_id, "yyes"]
-  
+# Create a train set and test set
+#First the predictors - all columns except the yyes column
+kNN_tele_train1 = group_1[kNN_test_set1, -match("yyes",names(group_1))]
+kNN_tele_test1 = group_1[-kNN_test_set1, -match("yyes",names(group_1))]
 
-  #Run KNN on train data, create predictions for test data
-  #Starting K value close to sqrt(nrow(wbcd_train))
-  tele_test_pred <- knn(train = tele_train, test = tele_test,
-                        cl = tele_train_labels, k=sqrt(nrow(tele_train)))
-  
-  #Evaluate model results
-  CrossTable(x = tele_test_labels, y = tele_test_pred, prop.chisq=FALSE)
-  confusionMatrix(as.factor(tele_test_pred), as.factor(tele_test_labels), positive = "1")
-}
+# Now the response (aka Labels) - only the yyes column
+kNN_tele_train_labels1 = group_1[kNN_test_set1, "yyes"]
+kNN_tele_test_labels1 = group_1[-kNN_test_set1, "yyes"]
 ```
+
+```{r}
+set.seed(12345)
+# Pick a reasonable K value from 1 to 15
+grid1 = expand.grid(k = seq(1, 15, by = 1))
+control1 = trainControl(method = "cv")
+train1 = kNN_tele_test1 %>% cbind(kNN_tele_test_labels1) %>% rename(class = kNN_tele_test_labels1)
+knn.train1 = train(class~., data = train1, method = "knn", trControl = control1, tuneGrid = grid1)
+knn.train1
+```
+
+```{r}
+set.seed(12345)
+# Summarizing the results above and trying them, we choose K = 4
+kNN_test_pred1 = knn(train = kNN_tele_train1, test = kNN_tele_test1,
+                      cl = kNN_tele_train_labels1, 4)
+#Evaluate model results
+CrossTable(x = kNN_tele_test_labels1, y = kNN_test_pred1, 
+           prop.chisq=FALSE)
+```
+
+### Group 2 Analysis
+```{r}
+set.seed(12345)
+# Selects random rows for the group 2 test data
+yes_people2 = which(group_2$yyes == 1)
+no_people2 = which(group_2$yyes == 0)
+kNN_test_set2 = c(sample(yes_people2, size = trunc(0.40 * length(yes_people2 ))),sample(no_people2, size = trunc(0.40 * length(no_people2))))
+
+# Create a train set and test set
+#First the predictors - all columns except the yyes column
+kNN_tele_train2 = group_2[kNN_test_set2, -match("yyes",names(group_2))]
+kNN_tele_test2 = group_2[-kNN_test_set2, -match("yyes",names(group_2))]
+
+# Now the response (aka Labels) - only the yyes column
+kNN_tele_train_labels2 = group_2[kNN_test_set2, "yyes"]
+kNN_tele_test_labels2 = group_2[-kNN_test_set2, "yyes"]
+```
+
+```{r}
+set.seed(12345)
+# Pick a reasonable K value from 1 to 15
+grid2 = expand.grid(k = seq(1, 15, by = 1))
+control2 = trainControl(method = "cv")
+train2 = kNN_tele_test2 %>% cbind(kNN_tele_test_labels2) %>% rename(class = kNN_tele_test_labels2)
+knn.train2 = train(class~., data = train2, method = "knn", trControl = control2, tuneGrid = grid2)
+knn.train2
+```
+
+```{r}
+set.seed(12345)
+# Summarizing the results above and trying them, we choose K = 5
+kNN_test_pred2 = knn(train = kNN_tele_train2, test = kNN_tele_test2,
+                      cl = kNN_tele_train_labels2, 5)
+#Evaluate model results
+CrossTable(x = kNN_tele_test_labels2, y = kNN_test_pred2, 
+           prop.chisq=FALSE)
+```
+
+### Group 5 Analysis
+```{r}
+set.seed(12345)
+# Selects random rows for the group 5 test data
+yes_people5 = which(group_5$yyes == 1)
+no_people5 = which(group_5$yyes == 0)
+kNN_test_set5 = c(sample(yes_people5, size = trunc(0.40 * length(yes_people5 ))),sample(no_people5, size = trunc(0.40 * length(no_people5))))
+
+# Create a train set and test set
+#First the predictors - all columns except the yyes column
+kNN_tele_train5 = group_5[kNN_test_set5, -match("yyes",names(group_5))]
+kNN_tele_test5 = group_5[-kNN_test_set5, -match("yyes",names(group_5))]
+
+# Now the response (aka Labels) - only the yyes column
+kNN_tele_train_labels5 = group_5[kNN_test_set5, "yyes"]
+kNN_tele_test_labels5 = group_5[-kNN_test_set5, "yyes"]
+```
+
+```{r}
+set.seed(12345)
+# Pick a reasonable K value from 1 to 15
+grid5 = expand.grid(k = seq(1, 15, by = 1))
+control5 = trainControl(method = "cv")
+train5 = kNN_tele_test5 %>% cbind(kNN_tele_test_labels5) %>% rename(class = kNN_tele_test_labels5)
+knn.train5 = train(class~., data = train5, method = "knn", trControl = control5, tuneGrid = grid5)
+knn.train5
+```
+
+```{r}
+set.seed(12345)
+# Summarizing the result above and trying them, we choose K = 4
+kNN_test_pred5 = knn(train = kNN_tele_train5, test = kNN_tele_test5,
+                      cl = kNN_tele_train_labels5, 4)
+
+#Evaluate model results
+CrossTable(x = kNN_tele_test_labels5, y = kNN_test_pred5, 
+           prop.chisq=FALSE)
+```
+
+**kNN part conclusion**
+For the group 1, we get a profit of (15 * 6) - (38 + 15) * 1 = 37; For the group 2, we get a profit of (0 * 6) - (15 + 0) * 1 = -15, which means we will not call this group; For the group 5, we get a profit of (12 * 6) - (31 + 12) * 1 = 29. Since under the kNN model prediction, only the group 1 and 5 are profitable, only these 2 groups should be called. However, the group 5 has lower profit than the group 1. The company should consider carefully if it want to call the group.
 
 # Conclusion 
 
