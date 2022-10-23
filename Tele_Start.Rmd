@@ -272,6 +272,42 @@ for(x in cluster_data){
 }
 ```
 
+# Conclusion 
+
+In order to determine whether kNN, LR, ANN, or a combined prediction model yields better results, we first need to discuss what "better results" is as well as note what we are keeping constant between the various models in order to ensure a fair comparision. 
+
+## Defining Better Results
+
+Our objective is to maximize the amount of money this firm generates by ensuring they call people who are more likely to buy. Since a singular call costs $1 and a sucsessful call, we wish to achieve a ratio where:
+
+*  (numSucsessfulCalls / numTotalCalls) > 16.67% 
+
+Notice however, that if all models achieve this metric, we wish to consider how many calls we are making as well. If a model can ensure calling 100 people will be profitable whereas another model can ensure that calling 1000 people will be profitable, we would need to determine the total gain on using that model vs the other according to:
+
+* let totalProfit = $6 * numSucsessFulCalls * probCallIsSucsessful 
+
+## Constants held throughout models 
+
+In accordance with the aforementioned points, we wish to control for as many variables as possible to ensure that we are evaluating the models fairly. Therefore, we held all the models to the following standards and constraints:
+
+* Fix the seed value to 12345 
+* Train on 60% of our data set 
+* Test on 40% of our data set 
+
+# Results 
+
+## K means clustering 
+
+We have decided to cluster our potential customers into 5 groups. After testing the success rate of each group (if we call everyone in this group, will we achieve at least a 16.67% success rate?). 
+
+We can clearly see that calling groups <FILL IN ONCE DATA IS PUSHED>. Therefore, if we call groups <FILL IN>, we will have a profit of:
+
+* 
+
+## Linear Regression
+
+
+
 
 
 
