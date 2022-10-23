@@ -324,9 +324,10 @@ We can see that for Group 5, the ANN model with 1 hidden layer has profit of 133
 ## kNN prediction
 ```{r}
 # Load the required library
-library(caret)
-library(tidyverse)
-library(gmodels)
+library("caret")
+library("tidyverse")
+library("gmodels")
+library("class")
 ```
 
 ### Group 1 Analysis
@@ -338,7 +339,7 @@ no_people1 = which(group_1$yyes == 0)
 kNN_test_set1 = c(sample(yes_people1, size = trunc(0.40 * length(yes_people1 ))),sample(no_people1, size = trunc(0.40 * length(no_people1))))
 
 # Create a train set and test set
-#First the predictors - all columns except the yyes column
+# First the predictors - all columns except the yyes column
 kNN_tele_train1 = group_1[kNN_test_set1, -match("yyes",names(group_1))]
 kNN_tele_test1 = group_1[-kNN_test_set1, -match("yyes",names(group_1))]
 
@@ -357,14 +358,16 @@ knn.train1 = train(class~., data = train1, method = "knn", trControl = control1,
 knn.train1
 ```
 
+
 ```{r}
 set.seed(12345)
 # Summarizing the results above and trying them, we choose K = 4
 kNN_test_pred1 = knn(train = kNN_tele_train1, test = kNN_tele_test1,
                       cl = kNN_tele_train_labels1, 4)
-#Evaluate model results
+# Evaluate model results
 CrossTable(x = kNN_tele_test_labels1, y = kNN_test_pred1, 
            prop.chisq=FALSE)
+confusionMatrix(as.factor(kNN_test_pred1), as.factor(kNN_tele_test_labels1), positive = "1")
 ```
 
 ### Group 2 Analysis
@@ -376,7 +379,7 @@ no_people2 = which(group_2$yyes == 0)
 kNN_test_set2 = c(sample(yes_people2, size = trunc(0.40 * length(yes_people2 ))),sample(no_people2, size = trunc(0.40 * length(no_people2))))
 
 # Create a train set and test set
-#First the predictors - all columns except the yyes column
+# First the predictors - all columns except the yyes column
 kNN_tele_train2 = group_2[kNN_test_set2, -match("yyes",names(group_2))]
 kNN_tele_test2 = group_2[-kNN_test_set2, -match("yyes",names(group_2))]
 
@@ -400,9 +403,10 @@ set.seed(12345)
 # Summarizing the results above and trying them, we choose K = 5
 kNN_test_pred2 = knn(train = kNN_tele_train2, test = kNN_tele_test2,
                       cl = kNN_tele_train_labels2, 5)
-#Evaluate model results
+# Evaluate model results
 CrossTable(x = kNN_tele_test_labels2, y = kNN_test_pred2, 
            prop.chisq=FALSE)
+confusionMatrix(as.factor(kNN_test_pred2), as.factor(kNN_tele_test_labels2), positive = "1")
 ```
 
 ### Group 5 Analysis
@@ -414,7 +418,7 @@ no_people5 = which(group_5$yyes == 0)
 kNN_test_set5 = c(sample(yes_people5, size = trunc(0.40 * length(yes_people5 ))),sample(no_people5, size = trunc(0.40 * length(no_people5))))
 
 # Create a train set and test set
-#First the predictors - all columns except the yyes column
+# First the predictors - all columns except the yyes column
 kNN_tele_train5 = group_5[kNN_test_set5, -match("yyes",names(group_5))]
 kNN_tele_test5 = group_5[-kNN_test_set5, -match("yyes",names(group_5))]
 
@@ -439,9 +443,10 @@ set.seed(12345)
 kNN_test_pred5 = knn(train = kNN_tele_train5, test = kNN_tele_test5,
                       cl = kNN_tele_train_labels5, 4)
 
-#Evaluate model results
+# Evaluate model results
 CrossTable(x = kNN_tele_test_labels5, y = kNN_test_pred5, 
            prop.chisq=FALSE)
+confusionMatrix(as.factor(kNN_test_pred5), as.factor(kNN_tele_test_labels5), positive = "1")
 ```
 
 **kNN part conclusion**
