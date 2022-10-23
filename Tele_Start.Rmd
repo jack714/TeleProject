@@ -196,17 +196,15 @@ For group 5, the result of the logistic regression model predicts a total of 5 b
 ```{r, cache=TRUE}
 # Building a simple ANN model for group 1 prediction
 library(neuralnet)
-#for(x in cluster_data){
+for(x in cluster_data){
   # generate random 3000 samples from group 1 as test data, rest as train data
-  #find number of yyes
-
   set.seed(430) # for reproducibility 
-  yes_people = which(group_1$yyes == 1)
-  no_people = which(group_1$yyes == 0)
+  yes_people = which(x$yyes == 1)
+  no_people = which(x$yyes == 0)
   train_id = c(sample(yes_people , size = trunc(0.70 * length(yes_people ))),sample(no_people , size = trunc(0.70 * length(no_people ))))
 
-  ANN_G1_train <- group_1[train_id,]
-  ANN_G1_test <- group_1[-train_id,]
+  ANN_G1_train <- x[train_id,]
+  ANN_G1_test <- x[-train_id,]
   # Train the ANN model with default 1 hidden layer
   # We don't train on cluster since it's all 1 for group_1
   ANN_mod_G1 <- neuralnet(formula = yyes ~ . - cluster, data = ANN_G1_train)
@@ -218,7 +216,7 @@ library(neuralnet)
   predicted_yyes_1 <- ifelse(ANN_pred1 <= threshold, 0, 1)
   CrossTable(x = ANN_G1_test$yyes, y = predicted_yyes_1, prop.chisq=FALSE)
   confusionMatrix(as.factor(ANN_G1_test$yyes), as.factor(predicted_yyes_1), positive = "1")
-#}
+  }
   # Now let's try with more hidden layers
   ANN_mod2_G1 <- neuralnet(yyes ~ . - cluster, data = ANN_G1_train, hidden = 3)
   plot(ANN_mod2_G1)
@@ -269,12 +267,8 @@ for(x in cluster_data){
                         cl = tele_train_labels, k=sqrt(nrow(tele_train)))
   
   #Evaluate model results
-  
-  CrossTable(x = tele_test_labels, y = tele_test_pred, 
-             prop.chisq=FALSE)
-  
+  CrossTable(x = tele_test_labels, y = tele_test_pred, prop.chisq=FALSE)
   confusionMatrix(as.factor(tele_test_pred), as.factor(tele_test_labels), positive = "1")
-
 }
 ```
 
