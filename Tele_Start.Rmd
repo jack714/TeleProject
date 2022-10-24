@@ -98,7 +98,7 @@ set.seed(12345)
 # Select 60% rows of cluster 1 as test data
   yes_people1 = which(group_1$yyes == 1)
   no_people1 = which(group_1$yyes == 0)
-  train_id1 = c(sample(yes_people , size = trunc(0.40 * length(yes_people ))),sample(no_people , size = trunc(0.40 * length(no_people ))))
+  train_id1 = c(sample(yes_people1 , size = trunc(0.40 * length(yes_people1 ))),sample(no_people1 , size = trunc(0.40 * length(no_people1 ))))
 
 # Create the train and test set
 group1_train <- group_1[train_id1, ]
@@ -125,7 +125,7 @@ CrossTable(x = group1_test$yyes, y = lroutcome_1, prop.chisq=FALSE)
 confusionMatrix(as.factor(group1_test$yyes), as.factor(lroutcome_1), positive = "1")
 ```
 
-For group 1, the result of the logistic regression model predicts a total of 29 buying customers that we should call. Among them, 17 customers are actually making the purchase. Therefore, if we follow the model's prediction, the success rate of our call would be its sensitivity, which is 17/29 = 0.59. The profit we can earn with the prediction result would be 17*6 - 29 = $73.
+For group 1, the result of the logistic regression model predicts a total of 16 buying customers that we should call. Among them, 9 customers are actually making the purchase. Therefore, if we follow the model's prediction, the success rate of our call would be its sensitivity, which is 9/16 = 0.56. The profit we can earn with the prediction result would be 9*6 - 16 = $38.
 
 ### Group 2
 ```{r}
@@ -133,7 +133,7 @@ set.seed(12345)
 # Select 60% rows of cluster 2 as test data
   yes_people2 = which(group_2$yyes == 1)
   no_people2 = which(group_2$yyes == 0)
-  train_id2 = c(sample(yes_people , size = trunc(0.40 * length(yes_people ))),sample(no_people , size = trunc(0.40 * length(no_people ))))
+  train_id2 = c(sample(yes_people2 , size = trunc(0.40 * length(yes_people2 ))),sample(no_people2 , size = trunc(0.40 * length(no_people2 ))))
 
 # Create the train and test set
 group2_train <- group_2[train_id2, ]
@@ -155,7 +155,6 @@ lroutcome_2 <- ifelse(lroutcome_2 <= 0.5, 0, 1)
 
 # Evaluate the prediction
 CrossTable(x = group2_test$yyes, y = lroutcome_2, prop.chisq=FALSE)
-confusionMatrix(as.factor(group2_test$yyes), as.factor(lroutcome_2), positive = "1")
 ```
 
 For group 2, the result of the logistic regression model predicts 0 buying customer that we should call, which means that we should not make any call within this customer group, and earn 0 profit.  
@@ -166,7 +165,7 @@ set.seed(12345)
 # Select 60% rows of cluster 5 as test data
   yes_people5 = which(group_5$yyes == 1)
   no_people5 = which(group_5$yyes == 0)
-  train_id5 = c(sample(yes_people , size = trunc(0.40 * length(yes_people ))),sample(no_people , size = trunc(0.40 * length(no_people ))))
+  train_id5 = c(sample(yes_people5 , size = trunc(0.40 * length(yes_people5 ))),sample(no_people5 , size = trunc(0.40 * length(no_people5 ))))
   
 # Create the train and test set
 group5_train <- group_5[train_id5, ]
@@ -191,7 +190,7 @@ CrossTable(x = group5_test$yyes, y = lroutcome_5, prop.chisq=FALSE)
 confusionMatrix(as.factor(group5_test$yyes), as.factor(lroutcome_5), positive = "1")
 ```
 
-For group 5, the result of the logistic regression model predicts a total of 29 buying customers that we should call. Among them, 13 customers are actually making the purchase. Therefore, if we follow the model's prediction, the success rate of our call would be its sensitivity, which is 13/29 = 0.45. The profit we can earn with the prediction result would be 13*6 - 29 = $49. 
+For group 5, the result of the logistic regression model predicts a total of 26 buying customers that we should call. Among them, 14 customers are actually making the purchase. Therefore, if we follow the model's prediction, the success rate of our call would be its sensitivity, which is 14/26 = 0.54. The profit we can earn with the prediction result would be 14*6 - 26 = $58. 
 
 
 
