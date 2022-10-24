@@ -86,6 +86,11 @@ group_2 <- tele_cluster_z[tele_cluster_z$cluster == 2,]
 group_3 <- tele_cluster_z[tele_cluster_z$cluster == 3,]
 group_4 <- tele_cluster_z[tele_cluster_z$cluster == 4,]
 group_5 <- tele_cluster_z[tele_cluster_z$cluster == 5,]
+summary(group_1)
+summary(group_2)
+summary(group_3)
+summary(group_4)
+summary(group_5)
 ```
 
 From the output, we can see that for cluster 3 and 4 the yyes numbers are large so we will call all of them. TODO: write more about how we store the data. Now we run three different models on each of cluster 1, 2 and 5. And use majority voting to decide if we are going to make the call.
@@ -219,7 +224,7 @@ ANN_pred1 <- predict(ANN_mod_G1, newdata = ANN_G1_test)
 threshold <- 0.6
 predicted_yyes_1 <- ifelse(ANN_pred1 <= threshold, 0, 1)
 CrossTable(x = ANN_G1_test$yyes, y = predicted_yyes_1, prop.chisq=FALSE)
-confusionMatrix(as.factor(ANN_G1_test$yyes), as.factor(predicted_yyes_1), positive = "1")
+#confusionMatrix(as.factor(ANN_G1_test$yyes), as.factor(predicted_yyes_1), positive = "1")
 
 # Now let's try with more hidden layers
 ANN_mod2_G1 <- neuralnet(yyes ~ . - cluster, data = ANN_G1_train, hidden = 3)
@@ -228,7 +233,7 @@ ANN_pred2 <- predict(ANN_mod2_G1, newdata = ANN_G1_test)
 threshold <- 0.6
 predicted_yyes_2 <- ifelse(ANN_pred2 <= threshold, 0, 1)
 CrossTable(x = ANN_G1_test$yyes, y = predicted_yyes_2, prop.chisq=FALSE)
-confusionMatrix(as.factor(ANN_G1_test$yyes), as.factor(predicted_yyes_2), positive = "1")
+#confusionMatrix(as.factor(ANN_G1_test$yyes), as.factor(predicted_yyes_2), positive = "1")
 # With 5 layers
 ANN_mod3_G1 <- neuralnet(yyes ~ . - cluster, data = ANN_G1_train, hidden = 5)
 plot(ANN_mod3_G1)
@@ -236,15 +241,17 @@ ANN_pred3 <- predict(ANN_mod3_G1, newdata = ANN_G1_test)
 threshold <- 0.6
 predicted_yyes_3 <- ifelse(ANN_pred3 <= threshold, 0, 1)
 CrossTable(x = ANN_G1_test$yyes, y = predicted_yyes_3, prop.chisq=FALSE)
-confusionMatrix(as.factor(ANN_G1_test$yyes), as.factor(predicted_yyes_3), positive = "1")
+#confusionMatrix(as.factor(ANN_G1_test$yyes), as.factor(predicted_yyes_3), positive = "1")
 group_1_ANN_decision <- predicted_yyes_3
 ```
 
 Thus we can see that for Group 1, the ANN model with 1 hidden layer has profit of 17 * 6 - (47+17) * 1 = 38, the ANN model with 3 hidden layers has profit of 10 * 6 - (54+10) * 1 = -4, and the ANN model with 5 hidden layers has profit of 12 * 6 - (13+12) * 1 = 47. We thus choose the prediction results for the model with 5 hidden layers given its highest profit and the lower requirement on number of calls made.
 
 ### Group 2
-
 ```{r, cache=TRUE}
+library(crosstable)
+library(gmodels)
+library(neuralnet)
 # Building a simple ANN model for group 2 prediction
 # generate random 60% samples from group 2 as test data, rest as train data
 yes_people_G2 = which(group_2$yyes == 1)
@@ -262,7 +269,7 @@ ANN_pred4 <- predict(ANN_mod_G2, newdata = ANN_G2_test)
 threshold <- 0.13
 predicted_yyes_4 <- ifelse(ANN_pred4 <= threshold, 0, 1)
 CrossTable(x = ANN_G2_test$yyes, y = predicted_yyes_4, prop.chisq=FALSE)
-confusionMatrix(as.factor(ANN_G2_test$yyes), as.factor(predicted_yyes_4), positive = "1")
+#confusionMatrix(as.factor(ANN_G2_test$yyes), as.factor(predicted_yyes_4), positive = "1")
 
 # Now let's try with more hidden layers
 ANN_mod2_G2 <- neuralnet(yyes ~ . - cluster, data = ANN_G2_train, hidden = 3)
@@ -271,7 +278,7 @@ ANN_pred5 <- predict(ANN_mod2_G2, newdata = ANN_G2_test)
 threshold <- 0.3
 predicted_yyes_5 <- ifelse(ANN_pred5 <= threshold, 0, 1)
 CrossTable(x = ANN_G2_test$yyes, y = predicted_yyes_5, prop.chisq=FALSE)
-confusionMatrix(as.factor(ANN_G1_test$yyes), as.factor(predicted_yyes_2), positive = "1")
+#confusionMatrix(as.factor(ANN_G1_test$yyes), as.factor(predicted_yyes_2), positive = "1")
 # With 5 layers
 ANN_mod3_G2 <- neuralnet(yyes ~ . - cluster, data = ANN_G2_train, hidden = 5)
 plot(ANN_mod3_G2)
@@ -279,7 +286,7 @@ ANN_pred6 <- predict(ANN_mod3_G2, newdata = ANN_G2_test)
 threshold <- 0.85
 predicted_yyes_6 <- ifelse(ANN_pred6 <= threshold, 0, 1)
 CrossTable(x = ANN_G2_test$yyes, y = predicted_yyes_6, prop.chisq=FALSE)
-confusionMatrix(as.factor(ANN_G1_test$yyes), as.factor(predicted_yyes_3), positive = "1")
+#confusionMatrix(as.factor(ANN_G1_test$yyes), as.factor(predicted_yyes_3), positive = "1")
 group_2_ANN_decision <- predicted_yyes_6
 ```
 
@@ -305,7 +312,7 @@ ANN_pred7 <- predict(ANN_mod_G5, newdata = ANN_G5_test)
 threshold <- 0.05
 predicted_yyes_7 <- ifelse(ANN_pred7 <= threshold, 0, 1)
 CrossTable(x = ANN_G5_test$yyes, y = predicted_yyes_7, prop.chisq=FALSE)
-confusionMatrix(as.factor(ANN_G5_test$yyes), as.factor(predicted_yyes_7), positive = "1")
+#confusionMatrix(as.factor(ANN_G5_test$yyes), as.factor(predicted_yyes_7), positive = "1")
 
 # Now let's try with more hidden layers
 ANN_mod2_G5 <- neuralnet(yyes ~ . - cluster, data = ANN_G5_train, hidden = 3)
@@ -314,7 +321,7 @@ ANN_pred8 <- predict(ANN_mod2_G5, newdata = ANN_G5_test)
 threshold <- 0.2
 predicted_yyes_8 <- ifelse(ANN_pred8 <= threshold, 0, 1)
 CrossTable(x = ANN_G5_test$yyes, y = predicted_yyes_8, prop.chisq=FALSE)
-confusionMatrix(as.factor(ANN_G5_test$yyes), as.factor(predicted_yyes_8), positive = "1")
+#confusionMatrix(as.factor(ANN_G5_test$yyes), as.factor(predicted_yyes_8), positive = "1")
 # With 5 layers
 ANN_mod3_G5 <- neuralnet(yyes ~ . - cluster, data = ANN_G5_train, hidden = 5)
 plot(ANN_mod3_G5)
@@ -322,7 +329,7 @@ ANN_pred9 <- predict(ANN_mod3_G5, newdata = ANN_G5_test)
 threshold <- 0.37
 predicted_yyes_9 <- ifelse(ANN_pred9 <= threshold, 0, 1)
 CrossTable(x = ANN_G5_test$yyes, y = predicted_yyes_9, prop.chisq=FALSE)
-confusionMatrix(as.factor(ANN_G5_test$yyes), as.factor(predicted_yyes_9), positive = "1")
+#confusionMatrix(as.factor(ANN_G5_test$yyes), as.factor(predicted_yyes_9), positive = "1")
 group_5_ANN_decision <- predicted_yyes_9
 ```
 
@@ -456,9 +463,6 @@ CrossTable(x = kNN_tele_test_labels5, y = kNN_test_pred5,
 confusionMatrix(as.factor(kNN_test_pred5), as.factor(kNN_tele_test_labels5), positive = "1")
 ```
 
-**kNN part conclusion**
-For the group 1, we get a profit of (15 * 6) - (38 + 15) * 1 = 37; For the group 2, we get a profit of (0 * 6) - (15 + 0) * 1 = -15, which means we will not call this group; For the group 5, we get a profit of (12 * 6) - (31 + 12) * 1 = 29. Since under the kNN model prediction, only the group 1 and 5 are profitable, only these 2 groups should be called. However, the group 5 has lower profit than the group 1. The company should consider carefully if it want to call the group.
-
 # Conclusion 
 
 In order to determine whether kNN, LR, ANN, or a combined prediction model yields better results, we first need to discuss what "better results" is as well as note what we are keeping constant between the various models in order to ensure a fair comparision. 
@@ -471,7 +475,7 @@ Our objective is to maximize the amount of money this firm generates by ensuring
 
 Notice however, that if all models achieve this metric, we wish to consider how many calls we are making as well. If a model can ensure calling 100 people will be profitable whereas another model can ensure that calling 1000 people will be profitable, we would need to determine the total gain on using that model vs the other according to:
 
-* let totalProfit = $6 * numSucsessFulCalls * probCallIsSucsessful 
+* let totalProfit = $6 * numSucsessfulCalls - $1 * numUnsucsessfulCalls 
 
 ## Constants held throughout models 
 
@@ -487,12 +491,38 @@ In accordance with the aforementioned points, we wish to control for as many var
 
 We have decided to cluster our potential customers into 5 groups. After testing the success rate of each group (if we call everyone in this group, will we achieve at least a 16.67% success rate?). 
 
-We can clearly see that calling groups <FILL IN ONCE DATA IS PUSHED>. Therefore, if we call groups <FILL IN>, we will have a profit of:
+We can clearly see that . Therefore, if we call groups , we will have a profit of:
 
 * 
 
-## Linear Regression
+## Lgoistic Regression
 
+For group 1, the result of the logistic regression model predicts a total of 29 buying customers that we should call. Among them, 17 customers are actually making the purchase. Therefore, if we follow the model's prediction, the success rate of our call would be its sensitivity, which is 17/29 = 0.59. The profit we can earn with the prediction result would be 17*6 - 29 = $73.
+
+
+For group 2, the result of the logistic regression model predicts 0 buying customer that we should call, which means that we should not make any call within this customer group, and earn 0 profit.  
+
+For group 5, the result of the logistic regression model predicts a total of 29 buying customers that we should call. Among them, 13 customers are actually making the purchase. Therefore, if we follow the model's prediction, the success rate of our call would be its sensitivity, which is 13/29 = 0.45. The profit we can earn with the prediction result would be 13*6 - 29 = $49. 
+
+## ANN
+
+We can see that for Group 2, the ANN model with 1 hidden layer has profit of 80 * 6 - (1175+80) * 1 = -775, the ANN model with 3 hidden layers has profit of 6 * 6 - (95+6) * 1 = -65, and the ANN model with 5 hidden layers has profit of 3 * 6 - (12+3) * 1 = 3. We thus choose the prediction results for the model with 5 hidden layers given its highest profit and the lower requirement on number of calls made. However, the profit is much lower than group 1's profit, indicating that group 2 may not be a good group to make calls.
+
+We can see that for Group 5, the ANN model with 1 hidden layer has profit of 133 * 6 - (133+1937) * 1 = -1272, the ANN model with 3 hidden layers has profit of 3 * 6 - (38+3) * 1 = -23, and the ANN model with 5 hidden layers has profit of 1 * 6 - (1+1) * 1 = 4. We thus choose the prediction results for the model with 5 hidden layers given its highest profit. However, the profit is much lower than group 1's profit, indicating that group 5 may not be a good group to make calls.
+
+Thus we can see that for Group 1, the ANN model with 1 hidden layer has profit of 17 * 6 - (47+17) * 1 = 38, the ANN model with 3 hidden layers has profit of 10 * 6 - (54+10) * 1 = -4, and the ANN model with 5 hidden layers has profit of 12 * 6 - (13+12) * 1 = 47. We thus choose the prediction results for the model with 5 hidden layers given its highest profit and the lower requirement on number of calls made.
+
+## KNN
+
+For the group 1, we get a profit of (15 * 6) - (38 + 15) * 1 = 37; For the group 2, we get a profit of (0 * 6) - (15 + 0) * 1 = -15, which means we will not call this group; For the group 5, we get a profit of (12 * 6) - (31 + 12) * 1 = 29. Since under the kNN model prediction, only the group 1 and 5 are profitable, only these 2 groups should be called. However, the group 5 has lower profit than the group 1. The company should consider carefully if it want to call the group.
+
+## Clustering 
+
+From the output, we can see that for cluster 3 and 4 the yyes numbers are large so we will call all of them. By caching the datapoints of similar customers, we are able to efficently determine if we should call a customer, given the majority vote system determines they are more than 16.67% likely to purchase the subscription. Now we run three different models on each of cluster 1, 2 and 5. And use majority voting to decide if we are going to make the call. Running this on our training set led us to determine that we should call people in clusters 3 and 4 as the sucsess rate for calling people in cluster 3 19.52% and cluster 4 with 63.7%, which leads to a grand total profit of $1075
+
+# Concluding thoughts 
+
+As we can see, the various methods presented above all lead to a profitable operation, however, we are concerned with keeping the operation as profitible as possible. This means that we should choose clustering when compared to other methods. There are some optimizations we could make to other models to make them more profitable, but we are confident that clustering is the most efficent and profitable method for determining whether someone will buy a subscription as clustering accounts for similarities in individuals and uses a majority vote system to determine if we should sell to someone. 
 
 
 
